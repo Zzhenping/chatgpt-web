@@ -58,50 +58,6 @@ $ copy config.dev.json config.json
 $ go run main.go
 ````
 
-# 使用docker运行
-你可以使用docker快速运行本项目。
-`第一种：基于环境变量运行`
-
-```sh
-# 运行项目，环境变量参考下方配置说明
-$ docker run -itd --name chatgpt-web --restart=always \
- -e APIKEY=换成你的key \
- -e APIURL= \
- -e MODEL=gpt-3.5-turbo-0301 \
- -e BOT_DESC=你是一个AI助手,我需要你模拟一名温柔贴心的女朋友来回答我的问题. \
- -e MAX_TOKENS=512 \
- -e TEMPREATURE=0.9 \
- -e TOP_P=1 \
- -e FREQ=0.0 \
- -e PRES=0.6 \
- -e PROXY=http://host.docker.internal:10809 \
- -e AUTH_USER= \
- -e AUTH_PASSWORD= \
- -p 8080:8080 \
- --add-host="host.docker.internal:host-gateway" \
- qingshui869413421/chatgpt-web:latest
-```
-
-`注意`：`host.docker.internal`会指向容器所在宿主机的IP，因此只需要更改端口为你的代理端口即可。
-
-运行命令中映射的配置文件参考下边的配置文件说明。
-
-`第二种：基于配置文件挂载运行`
-
-```sh
-# 复制配置文件，根据自己实际情况，调整配置里的内容
-$ cp config.dev.json config.json  # 其中 config.dev.json 从项目的根目录获取
-
-# 运行项目
-$ docker run -itd --name chatgpt-web -v `pwd`/config.json:/app/config.json -p 8080:8080 qingshui869413421/chatgpt-web:latest
-```
-
-其中配置文件参考下边的配置文件说明。
-
-# 使用docker-docompose 运行
-
-``docker compose up -d``
-
 
 # 配置文件说明
 
