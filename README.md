@@ -44,32 +44,6 @@
 
 # 快速开始
 
-`第一种：直接下载二进制(适合对编程不了解的同学)`
-
-> 非技术人员请直接下载release中的[压缩包](https://github.com/869413421/chatgpt-web/releases) ，请根据自己系统以及架构选择合适的压缩包，下载之后直接解压运行。
-
-下载之后，在本地解压，即可看到可执行程序，与配置文件：
-
-```
-# windows
-1.下载压缩包解压
-2.复制文件中config.dev.json更改为config.json
-3.将config.json中的api_key替换为自己的
-4.双击exe运行，启动服务
-
-# linux
-$ tar xf chatgpt-web-v0.0.2-darwin-arm64.tar.gz # 解压
-$ cd chatgpt-web-v0.0.2-darwin-arm64
-$ cp config.dev.json # 根据情况调整配置文件内容
-$ ./chatgpt-web  # 直接运行
-
-# 如果要守护在后台运行
-$ nohup ./chatgpt-web &> run.log &
-$ tail -f run.log
-```
-
-`第二种：基于源码运行(适合了解go语言编程的同学)`
-
 ````
 # 获取项目
 $ git clone https://github.com/869413421/chatgpt-web.git
