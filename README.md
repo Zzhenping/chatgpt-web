@@ -46,7 +46,7 @@
 
 ````
 # 获取项目
-$ git clone https://github.com/869413421/chatgpt-web.git
+$ git clone [[https://github.com/869413421/chatgpt-web.git]()](https://github.com/Zzhenping/chatgpt-web.git)
 
 # 进入项目目录
 $ cd chatgpt-web
