@@ -50,7 +50,7 @@
 $ git clone https://github.com/Zzhenping/chatgpt-web.git
 
 # 进入项目目录
-$ cd chatgpt-web
+$ cd server/chatgpt-web
 
 # 复制配置文件
 $ copy config.dev.json config.json
