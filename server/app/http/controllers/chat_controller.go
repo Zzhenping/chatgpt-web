@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/869413421/chatgpt-web/pkg/types"
 	"io"
 	"net"
@@ -99,12 +98,9 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 	if request.Model == "" {
 		request.Model = cnf.Model
 	}
-
+	request.Stream = true
 	// cnf.Model 是否在 chatModels 中
-	if types.Contains(chatModels, cnf.Model) {
-		request.Model = cnf.Model
-		request.Stream = true
-
+	if types.Contains(chatModels, request.Model) {
 		if request.Stream {
 			stream, err := client.CreateChatCompletionStream(ctx, request)
 			if err != nil {
@@ -140,7 +136,7 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 
 			ctx.Stream(func(w io.Writer) bool {
 				if msg, ok := <-chanStream; ok {
-					fmt.Println(msg)
+					//fmt.Println(msg)
 					if msg == "<!finish>" {
 						ctx.SSEvent("stop", "finish")
 					}
