@@ -1,16 +1,17 @@
 import serviceAxios from "./request";
 import {getCookie} from "../utils/cookie";
+import config from "../config/config";
 
 export const getUserInfo = () => {
     return serviceAxios({
-        url: "auth/info",
+        url: config.apiBaseDomain + "/auth/info",
         method: "post",
     });
 };
 
 export const login = (params: Object) => {
     return serviceAxios({
-        url: "user/auth",
+        url: config.apiBaseDomain + "/user/auth",
         method: "post",
         data: params,
     });
@@ -18,7 +19,7 @@ export const login = (params: Object) => {
 
 export const completion = (chatContext:any) => {
     return serviceAxios({
-        url: "chat/completion",
+        url: config.apiBaseDomain + "/chat/completion",
         method: "post",
         data: {
             messages: chatContext,
@@ -26,7 +27,7 @@ export const completion = (chatContext:any) => {
     });
 };
 
-export const completionStream = (chatContext: any, model: string) => {
+export const completionStream = (params:string) => {
 
     let dataObj = {
         method: 'POST',
@@ -34,11 +35,8 @@ export const completionStream = (chatContext: any, model: string) => {
             'Content-Type': 'application/json',
             'Authorization': "Bearer " + getCookie("mojolicious")
         },
-        body: JSON.stringify({
-            messages: chatContext,
-            model: model
-        })
+        body: params
     }
 
-    return fetch('/chat/completion', dataObj);
+    return fetch(config.apiBaseDomain + '/chat/completion', dataObj);
 }

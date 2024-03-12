@@ -98,6 +98,7 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 	if request.Model == "" {
 		request.Model = cnf.Model
 	}
+
 	request.Stream = true
 	// cnf.Model 是否在 chatModels 中
 	if types.Contains(chatModels, request.Model) {

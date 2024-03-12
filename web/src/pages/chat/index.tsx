@@ -1,22 +1,20 @@
 import './chat.css'
 import css from '../../App.module.css'
 import '../../chatui-theme.css'
-import Chat, {Bubble, Button, MessageProps, Modal, Progress, RadioGroup, toast, useMessages,} from '@chatui/core'
+import Chat, {Bubble, Button, Input, MessageProps, Modal, Progress, RadioGroup, toast, useMessages,} from '@chatui/core'
 import '@chatui/core/dist/index.css'
 import '@chatui/core/es/styles/index.less'
 import {SetStateAction, useState} from 'react'
-import clipboardy from 'clipboardy'
 import MdEditor from "md-editor-rt"
 import "md-editor-rt/lib/style.css"
 import sanitizeHtml from 'sanitize-html';
 import {completion, completionStream} from '../../services/port'
-import {json} from "react-router-dom";
-import {RadioGroupProps} from "@chatui/core/lib/components/Radio/RadioGroup";
 import {RadioValue} from "@chatui/core/lib/components/Radio/Radio";
+import Style from "./index.module.less";
 
 const defaultQuickReplies = [
     {
-        name: '选择模型',
+        name: '模型配置',
         isNew: true,
         isHighlight: true,
     },
@@ -47,7 +45,10 @@ let chatContext: any[] = []
 function App() {
     const {messages, appendMsg, updateMsg, setTyping, prependMsgs} = useMessages(initialMessages)
     const [percentage, setPercentage] = useState(0)
-    const [value, setValue] = useState('gpt-3.5-turbo');
+    const [value, setValue] = useState<RadioValue>('gpt-3.5-turbo');
+    const [maxTokens, setMaxTokens] = useState<string>("512")
+    const [botDesc, setBotDesc] = useState<string>("")
+    const [percentageParam, setPercentageParam] = useState(20);
 
 
     const [open, setOpen] = useState<boolean>(false);
@@ -141,7 +142,7 @@ function App() {
             prependMsgs(messages)
         }
 
-        if (item.name === '选择模型') {
+        if (item.name === '模型配置') {
             setOpen(true);
         }
         // if (item.name === '复制会话') {
@@ -168,7 +169,14 @@ function App() {
 
         // 生成随机id
         const id = Math.random().toString(36).substr(2)
-        const res = await completionStream(chatContext, value)
+        // 将maxTokens转为int
+        const params = JSON.stringify({
+            messages: chatContext,
+            model: value,
+            max_tokens: parseInt(maxTokens), // 转为int
+            bot_desc: botDesc,
+        })
+        const res = await completionStream(params)
         if (res.ok && res.body) {
             appendMsg({
                 _id: id,
@@ -251,7 +259,6 @@ function App() {
         }
     }
     function handleChange(val: RadioValue) {
-        // @ts-ignore
         setValue(val);
     }
 
@@ -260,13 +267,6 @@ function App() {
         { label: 'gpt-4', value: 'gpt-4' },
     ];
 
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     return (
         <div className={css.app}>
             <Chat
@@ -298,7 +298,7 @@ function App() {
             {/*@ts-ignore*/}
             <Modal
                 active={open}
-                title="选择模型"
+                title="模型配置"
                 showClose={false}
                 onClose={handleClose}
                 actions={[
@@ -309,7 +309,17 @@ function App() {
                 ]}
             >
                 <div>
+                    <h4>模型配置</h4>
                     <RadioGroup value={value} options={options} onChange={handleChange} />
+                </div>
+                <div>
+                    <h4>AI特征</h4>
+                    <Input rows={3} value={botDesc} onChange={val => setBotDesc(val)} placeholder="你是一个AI助手，我需要你模拟一名专业工程师来回答我的问题!" />
+                </div>
+
+                <div>
+                    <h4>请求最大字符数</h4>
+                    <Input value={maxTokens} onChange={val => setMaxTokens(val)} placeholder="GPT请求最大字符数" />
                 </div>
             </Modal>
         </div>
