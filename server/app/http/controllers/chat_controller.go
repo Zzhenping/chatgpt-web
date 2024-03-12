@@ -27,6 +27,11 @@ type ChatController struct {
 	BaseController
 }
 
+type CustomParams struct {
+	gogpt.ChatCompletionRequest
+	BotDesc string `json:"bot_desc"`
+}
+
 // NewChatController 创建控制器
 func NewChatController() *ChatController {
 	return &ChatController{}
@@ -41,18 +46,16 @@ func (c *ChatController) Index(ctx *gin.Context) {
 
 // Completion 回复
 func (c *ChatController) Completion(ctx *gin.Context) {
-	var request gogpt.ChatCompletionRequest
+	var request CustomParams
 	err := ctx.BindJSON(&request)
 	if err != nil {
 		c.ResponseJson(ctx, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
-	logger.Info(request)
 	if len(request.Messages) == 0 {
 		c.ResponseJson(ctx, http.StatusBadRequest, "request messages required", nil)
 		return
 	}
-
 	cnf := config.LoadConfig()
 	gptConfig := gogpt.DefaultConfig(cnf.ApiKey)
 
@@ -86,10 +89,14 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 		gptConfig.BaseURL = cnf.ApiURL
 	}
 
+	if request.BotDesc == "" {
+		request.BotDesc = cnf.BotDesc
+	}
+
 	client := gogpt.NewClientWithConfig(gptConfig)
 	if request.Messages[0].Role != "system" {
 		newMessage := append([]gogpt.ChatCompletionMessage{
-			{Role: "system", Content: cnf.BotDesc},
+			{Role: "system", Content: request.BotDesc},
 		}, request.Messages...)
 		request.Messages = newMessage
 		logger.Info(request.Messages)
@@ -99,11 +106,24 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 		request.Model = cnf.Model
 	}
 
-	request.Stream = true
+	req := gogpt.ChatCompletionRequest{
+		Model:            request.Model,
+		Messages:         request.Messages,
+		MaxTokens:        request.MaxTokens,
+		Temperature:      request.Temperature,
+		TopP:             request.TopP,
+		N:                request.N,
+		Stream:           true,
+		Stop:             request.Stop,
+		PresencePenalty:  request.PresencePenalty,
+		FrequencyPenalty: request.FrequencyPenalty,
+		LogitBias:        request.LogitBias,
+		User:             request.User,
+	}
 	// cnf.Model 是否在 chatModels 中
 	if types.Contains(chatModels, request.Model) {
 		if request.Stream {
-			stream, err := client.CreateChatCompletionStream(ctx, request)
+			stream, err := client.CreateChatCompletionStream(ctx, req)
 			if err != nil {
 				c.ResponseJson(ctx, http.StatusInternalServerError, err.Error(), nil)
 				return
@@ -153,7 +173,7 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 			return
 		}
 
-		resp, err := client.CreateChatCompletion(ctx, request)
+		resp, err := client.CreateChatCompletion(ctx, req)
 		if err != nil {
 			c.ResponseJson(ctx, http.StatusInternalServerError, err.Error(), nil)
 			return
