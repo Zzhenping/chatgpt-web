@@ -6,7 +6,7 @@ import "./index.less";
 import "@chatui/core/dist/index.css";
 import "@chatui/core/es/styles/index.less";
 import "md-editor-rt/lib/style.css";
-import {login} from '../../services/port'
+import { login } from "../../services/port";
 import { setCookie, getCookie } from "../../utils/cookie";
 interface LoginFormState {
   username: string;

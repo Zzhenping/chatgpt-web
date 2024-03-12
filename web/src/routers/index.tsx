@@ -1,5 +1,10 @@
 import { lazy, Suspense } from "react";
-import {createBrowserRouter, createMemoryRouter, Navigate, redirect} from "react-router-dom";
+import {
+  createBrowserRouter,
+  createMemoryRouter,
+  Navigate,
+  redirect,
+} from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { getUserInfo } from "../services/port";
@@ -16,7 +21,7 @@ const Login = lazy(() => import("../pages/login"));
  */
 const LazyLoad = (
   Component: React.LazyExoticComponent<() => JSX.Element>,
-  code?: string
+  code?: string,
 ) => {
   return (
     <Permission code={code}>
