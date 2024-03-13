@@ -9,8 +9,8 @@ function setCookie(name: string, value: string, days: number) {
 function getCookie(name: string) {
   const matches = document.cookie.match(
     new RegExp(
-      `(?:^|; )${name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1")}=([^;]*)`
-    )
+      `(?:^|; )${name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1")}=([^;]*)`,
+    ),
   );
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }
@@ -19,5 +19,4 @@ function getCookie(name: string) {
 function deleteCookie(name: string) {
   setCookie(name, "", -1);
 }
-export {setCookie,getCookie,deleteCookie}
-
+export { setCookie, getCookie, deleteCookie };

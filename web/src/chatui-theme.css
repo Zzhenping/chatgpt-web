@@ -1,11 +1,11 @@
 :root {
-    font-size: 16px;
-    line-height: 14px;
+  font-size: 16px;
+  line-height: 14px;
 }
 
 .ChatApp,
 .Bubble {
-    max-width: 100vw;
+  max-width: 100vw;
 }
 
 .MessageContainer,
@@ -13,8 +13,8 @@
 .Message .Bubble,
 .QuickReplies,
 .ChatFooter {
-    background-repeat: no-repeat;
-    background-size: cover;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 /*.ChatFooter {*/

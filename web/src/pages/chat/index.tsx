@@ -1,46 +1,56 @@
-import './chat.css'
-import css from '../../App.module.css'
-import '../../chatui-theme.css'
-import Chat, {Bubble, Button, Input, MessageProps, Modal, Progress, RadioGroup, toast, useMessages,} from '@chatui/core'
-import '@chatui/core/dist/index.css'
-import '@chatui/core/es/styles/index.less'
-import {SetStateAction, useState} from 'react'
-import MdEditor from "md-editor-rt"
-import "md-editor-rt/lib/style.css"
-import sanitizeHtml from 'sanitize-html';
-import {completion, completionStream} from '../../services/port'
-import {RadioValue} from "@chatui/core/lib/components/Radio/Radio";
+import "./chat.css";
+import css from "../../App.module.css";
+import "../../chatui-theme.css";
+import Chat, {
+  Bubble,
+  Button,
+  Input,
+  MessageProps,
+  Modal,
+  Progress,
+  RadioGroup,
+  toast,
+  useMessages,
+} from "@chatui/core";
+import "@chatui/core/dist/index.css";
+import "@chatui/core/es/styles/index.less";
+import { SetStateAction, useState } from "react";
+import MdEditor from "md-editor-rt";
+import "md-editor-rt/lib/style.css";
+import sanitizeHtml from "sanitize-html";
+import { completion, completionStream } from "../../services/port";
+import { RadioValue } from "@chatui/core/lib/components/Radio/Radio";
 import Style from "./index.module.less";
 
 const defaultQuickReplies = [
-    {
-        name: '模型配置',
-        isNew: true,
-        isHighlight: true,
-    },
-    {
-        name: '清空会话',
-        isNew: false,
-        isHighlight: true,
-    },
-    // {
-    //     name: '复制会话',
-    //     isNew: false,
-    //     isHighlight: true,
-    // },
-]
+  {
+    name: "模型配置",
+    isNew: true,
+    isHighlight: true,
+  },
+  {
+    name: "清空会话",
+    isNew: false,
+    isHighlight: true,
+  },
+  // {
+  //     name: '复制会话',
+  //     isNew: false,
+  //     isHighlight: true,
+  // },
+];
 
 const initialMessages = [
-    {
-        type: 'text',
-        content: {
-            text: '您好，我是您的AI助理，您可以问我您遇到的问题!',
-        },
-        user: {avatar: '//gitclone.com/download1/gitclone.png'},
+  {
+    type: "text",
+    content: {
+      text: "您好，我是您的AI助理，您可以问我您遇到的问题!",
     },
-]
+    user: { avatar: "//gitclone.com/download1/gitclone.png" },
+  },
+];
 
-let chatContext: any[] = []
+let chatContext: any[] = [];
 
 function App() {
     const {messages, appendMsg, updateMsg, setTyping, prependMsgs} = useMessages(initialMessages)
@@ -51,15 +61,15 @@ function App() {
     const [temperature, setTemperature] = useState(90);
 
 
-    const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
 
-    function handleClose() {
-        setOpen(false);
-    }
+  function handleClose() {
+    setOpen(false);
+  }
 
-    function handleConfirm() {
-        setOpen(false);
-    }
+  function handleConfirm() {
+    setOpen(false);
+  }
 
     const handleFocus = () => {
         setTimeout(() => {

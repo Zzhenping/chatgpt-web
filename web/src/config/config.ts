@@ -1,7 +1,7 @@
 const version:string = '1.0.1.0';
 
-let apiBaseDomain:string = '';
-console.log(import.meta.env.VITE_SERVER_TAG_NODE)
+let apiBaseDomain: string = "";
+console.log(import.meta.env.VITE_SERVER_TAG_NODE);
 switch (import.meta.env.VITE_SERVER_TAG_NODE) {
     case 'dev':
         apiBaseDomain = '/';
@@ -14,6 +14,6 @@ switch (import.meta.env.VITE_SERVER_TAG_NODE) {
 }
 
 export default {
-    version,
-    apiBaseDomain
-}
+  version,
+  apiBaseDomain,
+};
