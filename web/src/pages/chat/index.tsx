@@ -53,13 +53,13 @@ const initialMessages = [
 let chatContext: any[] = [];
 
 function App() {
-    const {messages, appendMsg, updateMsg, setTyping, prependMsgs} = useMessages(initialMessages)
-    const [percentage, setPercentage] = useState(0)
-    const [value, setValue] = useState<RadioValue>('gpt-3.5-turbo');
-    const [maxTokens, setMaxTokens] = useState<string>("512")
-    const [botDesc, setBotDesc] = useState<string>("")
-    const [temperature, setTemperature] = useState(90);
-
+  const { messages, appendMsg, updateMsg, setTyping, prependMsgs } =
+    useMessages(initialMessages);
+  const [percentage, setPercentage] = useState(0);
+  const [value, setValue] = useState<RadioValue>("gpt-3.5-turbo");
+  const [maxTokens, setMaxTokens] = useState<string>("512");
+  const [botDesc, setBotDesc] = useState<string>("");
+  const [temperature, setTemperature] = useState(90);
 
   const [open, setOpen] = useState<boolean>(false);
 
@@ -71,294 +71,316 @@ function App() {
     setOpen(false);
   }
 
-    const handleFocus = () => {
-        setTimeout(() => {
-            window.scrollTo(0, document.body.scrollHeight)
+  const handleFocus = () => {
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 10);
+  };
 
-        }, 10)
+  // const updateTemperature 两个参数, 一个是加减, 一个是温度值
+  const updateTemperature = (type: string, temperature: number) => {
+    if (type === "add") {
+      if (temperature < 100) {
+        setTemperature(temperature + 10);
+      }
+    } else {
+      if (temperature > 0) {
+        setTemperature(temperature - 10);
+      }
     }
+  };
 
-    // const updateTemperature 两个参数, 一个是加减, 一个是温度值
-    const updateTemperature =  (type: string, temperature: number) => {
-        if (type === 'add') {
-            if (temperature < 100) {
-                setTemperature(temperature + 10)
-            }
+  // clearQuestion 清空文本特殊字符
+  function clearQuestion(requestText: string) {
+    requestText = requestText.replace(/\s/g, "");
+    const punctuation = ",.;!?，。！？、…";
+    const runeRequestText = requestText.split("");
+    const lastChar = runeRequestText[runeRequestText.length - 1];
+    if (punctuation.indexOf(lastChar) < 0) {
+      requestText = requestText + "。";
+    }
+    return requestText;
+  }
+
+  // clearQuestion 清空文本换行符号
+  function clearReply(reply: string) {
+    // TODO 清洗回复特殊字符
+    return reply;
+  }
+
+  function handleSend(type: string, val: string) {
+    if (percentage > 0) {
+      toast.fail("正在等待上一次回复，请稍后");
+      return;
+    }
+    if (type === "text" && val.trim()) {
+      appendMsg({
+        type: "text",
+        content: { text: val },
+        position: "right",
+        user: { avatar: "//gitclone.com/download1/user.png" },
+      });
+
+      setTyping(true);
+      setPercentage(10);
+      onGenCode(val);
+    }
+  }
+
+  function renderMessageContent(msg: MessageProps) {
+    const { type, content } = msg;
+
+    switch (type) {
+      case "text":
+        let text = content.text;
+        let isHtml = sanitizeHtml(text) !== text;
+        const richTextRegex = /(<[^>]+>)|(```[^`]*```)/gi;
+        const isRichText = richTextRegex.test(text);
+        if (isHtml || isRichText) {
+          return (
+            <Bubble>
+              <MdEditor
+                style={{ float: "left" }}
+                modelValue={text} // 要展示的markdown字符串
+                previewOnly={true} // 只展示预览框部分
+              ></MdEditor>
+            </Bubble>
+          );
         } else {
-            if (temperature > 0) {
-                setTemperature(temperature - 10)
-            }
+          return <Bubble>{text}</Bubble>;
         }
+
+      default:
+        return null;
+    }
+  }
+
+  async function handleQuickReplyClick(item: { name: string }) {
+    if (item.name === "清空会话") {
+      chatContext.splice(0);
+      messages.splice(0);
+      prependMsgs(messages);
     }
 
-    // clearQuestion 清空文本特殊字符
-    function clearQuestion(requestText: string) {
-        requestText = requestText.replace(/\s/g, '')
-        const punctuation = ',.;!?，。！？、…'
-        const runeRequestText = requestText.split('')
-        const lastChar = runeRequestText[runeRequestText.length - 1]
-        if (punctuation.indexOf(lastChar) < 0) {
-            requestText = requestText + '。'
-        }
-        return requestText
+    if (item.name === "模型配置") {
+      setOpen(true);
     }
+    // if (item.name === '复制会话') {
+    //     if (messages.length <= 1) {
+    //         return
+    //     }
+    //     const r = messages
+    //         .slice(1)
+    //         .filter((it) => it.type === 'text')
+    //         .map((it) => it.content.text)
+    //         .join('\n')
+    //     console.log('messages', messages, r)
+    //     await clipboardy.write(r)
+    //     toast.success('复制成功', 10_000)
+    // }
+  }
 
-    // clearQuestion 清空文本换行符号
-    function clearReply(reply: string) {
-        // TODO 清洗回复特殊字符
-        return reply
-    }
+  async function onGenCode(question: string) {
+    question = clearQuestion(question);
+    chatContext.push({
+      role: "user",
+      content: question,
+    });
 
-    function handleSend(type: string, val: string) {
-        if (percentage > 0) {
-            toast.fail('正在等待上一次回复，请稍后')
-            return
-        }
-        if (type === 'text' && val.trim()) {
-            appendMsg({
-                type: 'text',
-                content: {text: val},
-                position: 'right',
-                user: {avatar: '//gitclone.com/download1/user.png'},
-            })
+    // 生成随机id
+    const id = Math.random().toString(36).substr(2);
+    // 将maxTokens转为int
+    const params = JSON.stringify({
+      messages: chatContext,
+      model: value,
+      max_tokens: parseInt(maxTokens),
+      bot_desc: botDesc,
+      temperature: temperature / 100,
+    });
+    const res = await completionStream(params);
+    if (res.ok && res.body) {
+      appendMsg({
+        _id: id,
+        type: "text",
+        content: { text: "test" },
+        user: { avatar: "//gitclone.com/download1/gitclone.png" },
+      });
 
-            setTyping(true)
-            setPercentage(10)
-            onGenCode(val)
-        }
-    }
+      let shownText = "";
+      let renderMarkdown = false;
 
-    function renderMessageContent(msg: MessageProps) {
-        const {type, content} = msg
+      let checkConsecutiveChars = function (str: string, symbol = "`") {
+        const pattern = new RegExp("(" + symbol + ")\\1{1,}");
+        return pattern.test(str);
+      };
 
-        switch (type) {
-            case 'text':
-                let text = content.text
-                let isHtml = sanitizeHtml(text) !== text;
-                const richTextRegex = /(<[^>]+>)|(```[^`]*```)/gi;
-                const isRichText = richTextRegex.test(text);
-                if (isHtml || isRichText) {
-                    return (
-                        <Bubble><MdEditor
-                            style={{float: 'left'}}
-                            modelValue={text} // 要展示的markdown字符串
-                            previewOnly={true} // 只展示预览框部分
-                        ></MdEditor></Bubble>
-                    )
-                } else {
-                    return (
-                        <Bubble>{text}</Bubble>
-                    )
+      // @ts-ignore
+      let getStream = function (
+        reader: ReadableStreamDefaultReader<Uint8Array>,
+      ) {
+        return reader.read().then(function (result) {
+          // 如果数据已经读取完毕，直接返回
+          if (result.done) {
+            setPercentage(0);
+            console.log(889, "result done");
+            return;
+          }
+          // 取出本段数据（二进制格式）
+          let chunk = result.value;
+          const text = new TextDecoder("utf-8").decode(chunk);
+          const lines = text.split("\n");
+
+          lines.forEach((line: string) => {
+            // 查找line中是否有data:字段
+            const dataPos = line.indexOf("data:");
+            if (dataPos > -1) {
+              const data = line.slice(dataPos + 5);
+              if (data === "finish" || data === "<!finish>") {
+                setPercentage(0);
+                console.log(889, "finish");
+                return;
+              }
+              let tmpData;
+              try {
+                tmpData = JSON.parse(data);
+              } catch (e) {
+                console.log(889, "parse error");
+                return;
+              }
+
+              if (checkConsecutiveChars(tmpData.delta.content, "`")) {
+                if (!renderMarkdown) {
+                  shownText += "``````";
                 }
+                renderMarkdown = !renderMarkdown;
+              }
 
-            default:
-                return null
-        }
-    }
-
-    async function handleQuickReplyClick(item: { name: string }) {
-        if (item.name === '清空会话') {
-
-            chatContext.splice(0)
-            messages.splice(0)
-            prependMsgs(messages)
-        }
-
-        if (item.name === '模型配置') {
-            setOpen(true);
-        }
-        // if (item.name === '复制会话') {
-        //     if (messages.length <= 1) {
-        //         return
-        //     }
-        //     const r = messages
-        //         .slice(1)
-        //         .filter((it) => it.type === 'text')
-        //         .map((it) => it.content.text)
-        //         .join('\n')
-        //     console.log('messages', messages, r)
-        //     await clipboardy.write(r)
-        //     toast.success('复制成功', 10_000)
-        // }
-    }
-
-    async function onGenCode(question: string) {
-        question = clearQuestion(question)
-        chatContext.push({
-            role: 'user',
-            content: question,
-        })
-
-        // 生成随机id
-        const id = Math.random().toString(36).substr(2)
-        // 将maxTokens转为int
-        const params = JSON.stringify({
-            messages: chatContext,
-            model: value,
-            max_tokens: parseInt(maxTokens),
-            bot_desc: botDesc,
-            temperature: temperature / 100,
-        })
-        const res = await completionStream(params)
-        if (res.ok && res.body) {
-            appendMsg({
-                _id: id,
-                type: 'text',
-                content: {text: "test"},
-                user: {avatar: '//gitclone.com/download1/gitclone.png'},
-            })
-
-            let shownText = "";
-            let renderMarkdown = false;
-
-            let checkConsecutiveChars = function (str: string, symbol = "`") {
-                const pattern = new RegExp("(" + symbol + ")\\1{1,}");
-                return pattern.test(str);
+              if (renderMarkdown) {
+                // 删除tmpData.delta.content中的```符号
+                // tmpData.delta.content = tmpData.delta.content.replace(/```/g, '');
+                // 从shownText最后的```之前开始插入字符串
+                const lastMarkdown = shownText.lastIndexOf("```");
+                shownText =
+                  shownText.slice(0, lastMarkdown) +
+                  tmpData.delta.content +
+                  shownText.slice(lastMarkdown);
+                console.log(shownText);
+              } else {
+                shownText += tmpData.delta.content;
+              }
             }
-
-            // @ts-ignore
-            let getStream = function (reader: ReadableStreamDefaultReader<Uint8Array>) {
-                return reader.read().then(function (result) {
-                    // 如果数据已经读取完毕，直接返回
-                    if (result.done) {
-                        setPercentage(0)
-                        console.log(889, "result done")
-                        return
-                    }
-                    // 取出本段数据（二进制格式）
-                    let chunk = result.value
-                    const text = new TextDecoder("utf-8").decode(chunk);
-                    const lines = text.split("\n");
-
-                    lines.forEach((line: string) => {
-                        // 查找line中是否有data:字段
-                        const dataPos = line.indexOf("data:");
-                        if (dataPos > -1) {
-                            const data = line.slice(dataPos + 5);
-                            if (data === 'finish' || data === '<!finish>') {
-                                setPercentage(0)
-                                console.log(889, "finish")
-                                return
-                            }
-                            let tmpData;
-                            try {
-                                tmpData = JSON.parse(data);
-                            } catch (e) {
-                                console.log(889, "parse error")
-                                return
-                            }
-
-                            if (checkConsecutiveChars(tmpData.delta.content, '`')) {
-                                if (!renderMarkdown) {
-                                    shownText += "``````"
-                                }
-                                renderMarkdown = !renderMarkdown;
-                            }
-
-                            if (renderMarkdown) {
-                                // 删除tmpData.delta.content中的```符号
-                                // tmpData.delta.content = tmpData.delta.content.replace(/```/g, '');
-                                // 从shownText最后的```之前开始插入字符串
-                                const lastMarkdown = shownText.lastIndexOf("```");
-                                shownText = shownText.slice(0, lastMarkdown) + tmpData.delta.content + shownText.slice(lastMarkdown);
-                                console.log(shownText)
-                            } else {
-                                shownText += tmpData.delta.content;
-                            }
-                        }
-                    });
-                    updateMsg(id, {
-                        type: 'text',
-                        content: {text: shownText},
-                        user: {avatar: '//gitclone.com/download1/gitclone.png'},
-                    })
-                    return getStream(reader)
-                })
-            }
-            await getStream(res.body.getReader())
-        } else {
-            setPercentage(0)
-            return toast.fail('请求出错，请稍后再试!', undefined)
-        }
+          });
+          updateMsg(id, {
+            type: "text",
+            content: { text: shownText },
+            user: { avatar: "//gitclone.com/download1/gitclone.png" },
+          });
+          return getStream(reader);
+        });
+      };
+      await getStream(res.body.getReader());
+    } else {
+      setPercentage(0);
+      return toast.fail("请求出错，请稍后再试!", undefined);
     }
-    function handleChange(val: RadioValue) {
-        setValue(val);
-    }
+  }
+  function handleChange(val: RadioValue) {
+    setValue(val);
+  }
 
-    const options = [
-        { label: 'gpt-3.5-turbo', value: 'gpt-3.5-turbo' },
-        { label: 'gpt-4', value: 'gpt-4' },
-    ];
-    console.log(temperature)
-    return (
-        <div className={css.app}>
-            <Chat
-                navbar={{
-                    leftContent: {
-                        icon: 'chevron-left',
-                        title: 'Back',
-                    },
-                    rightContent: [
-                        {
-                            icon: 'apps',
-                            title: 'Applications',
-                        },
-                        {
-                            icon: 'ellipsis-h',
-                            title: 'More',
-                        },
-                    ],
-                    title: 'ChatGPT的AI问答助手',
-                }}
-                messages={messages}
-                renderMessageContent={renderMessageContent}
-                quickReplies={defaultQuickReplies}
-                onQuickReplyClick={handleQuickReplyClick}
-                onSend={handleSend}
-                onInputFocus={handleFocus}
-            />
-            <Progress value={percentage}/>
-            {/*@ts-ignore*/}
-            <Modal
-                active={open}
-                title="模型配置"
-                showClose={false}
-                onClose={handleClose}
-                actions={[
-                    {
-                        label: '返回',
-                        onClick: handleClose,
-                    },
-                ]}
-            >
-                <div>
-                    <h4>模型配置</h4>
-                    <RadioGroup value={value} options={options} onChange={handleChange} />
-                </div>
-                <div>
-                    <h4>AI特征</h4>
-                    <Input rows={3} value={botDesc} onChange={val => setBotDesc(val)} placeholder="你是一个AI助手，我需要你模拟一名专业工程师来回答我的问题!" />
-                </div>
-
-                <div>
-                    <h4>请求最大字符数</h4>
-                    <Input value={maxTokens} onChange={val => setMaxTokens(val)} placeholder="GPT请求最大字符数" />
-                </div>
-
-                <div>
-                    <h4 className={Style.temperature_title_box}>
-                        温度系数
-                        <Input value={temperature / 100} disabled={true}/>
-                    </h4>
-                    <div className={Style.temperature_box}>
-                        <Button onClick={() => updateTemperature("", temperature)}>减</Button>
-                        <Progress value={temperature} className={Style.progress_container}/>
-                        <Button onClick={() => updateTemperature("add", temperature)} color="primary">加</Button>
-                    </div>
-                </div>
-            </Modal>
+  const options = [
+    { label: "gpt-3.5-turbo", value: "gpt-3.5-turbo" },
+    { label: "gpt-4", value: "gpt-4" },
+  ];
+  console.log(temperature);
+  return (
+    <div className={css.app}>
+      <Chat
+        navbar={{
+          leftContent: {
+            icon: "chevron-left",
+            title: "Back",
+          },
+          rightContent: [
+            {
+              icon: "apps",
+              title: "Applications",
+            },
+            {
+              icon: "ellipsis-h",
+              title: "More",
+            },
+          ],
+          title: "ChatGPT的AI问答助手",
+        }}
+        messages={messages}
+        renderMessageContent={renderMessageContent}
+        quickReplies={defaultQuickReplies}
+        onQuickReplyClick={handleQuickReplyClick}
+        onSend={handleSend}
+        onInputFocus={handleFocus}
+      />
+      <Progress value={percentage} />
+      {/*@ts-ignore*/}
+      <Modal
+        active={open}
+        title="模型配置"
+        showClose={false}
+        onClose={handleClose}
+        actions={[
+          {
+            label: "返回",
+            onClick: handleClose,
+          },
+        ]}
+      >
+        <div>
+          <h4>模型配置</h4>
+          <RadioGroup value={value} options={options} onChange={handleChange} />
         </div>
-    )
+        <div>
+          <h4>AI特征</h4>
+          <Input
+            rows={3}
+            value={botDesc}
+            onChange={val => setBotDesc(val)}
+            placeholder="你是一个AI助手，我需要你模拟一名专业工程师来回答我的问题!"
+          />
+        </div>
+
+        <div>
+          <h4>请求最大字符数</h4>
+          <Input
+            value={maxTokens}
+            onChange={val => setMaxTokens(val)}
+            placeholder="GPT请求最大字符数"
+          />
+        </div>
+
+        <div>
+          <h4 className={Style.temperature_title_box}>
+            温度系数
+            <Input value={temperature / 100} disabled={true} />
+          </h4>
+          <div className={Style.temperature_box}>
+            <Button onClick={() => updateTemperature("", temperature)}>
+              减
+            </Button>
+            <Progress
+              value={temperature}
+              className={Style.progress_container}
+            />
+            <Button
+              onClick={() => updateTemperature("add", temperature)}
+              color="primary"
+            >
+              加
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
 }
 
-export default App
+export default App;

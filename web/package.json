@@ -9,7 +9,7 @@
     "dev:release": "vite --mode prod",
     "build": "tsc && vite build --mode prod",
     "preview": "vite preview",
-    "format": "prettier --write . '!public/**/*'"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@chatui/core": "^2.4.2",
