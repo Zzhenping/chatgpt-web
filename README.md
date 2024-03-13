@@ -1,5 +1,5 @@
 # chatgpt-web
-基于ChatGPT3.5 API实现的私有化web程序
+基于 ChatGPT3.5 4 API 实现的私有化 web 程序
 
 基于 https://github.com/869413421/chatgpt-web 项目开发, 增加更多功能
 
@@ -38,7 +38,7 @@
 # 获取项目
 $ git clone https://github.com/Zzhenping/chatgpt-web.git
 
-# 进入项目目录
+# 进入服务端项目目录
 $ cd chatgpt-web/server
 
 # 复制配置文件
@@ -46,6 +46,16 @@ $ copy config.dev.json config.json
 
 # 启动项目
 $ go run main.go
+
+
+# 进入web端项目
+$ cd chatgpt-web/web
+
+# 安装依赖
+$ pnpm i
+
+# 运行
+$ npm run dev:local
 ````
 
 
