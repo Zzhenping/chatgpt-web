@@ -4,6 +4,7 @@
 基于 https://github.com/869413421/chatgpt-web 项目开发, 增加更多功能
 
 # 更新记录
+- [x] feat: 增加模型配置面板 2024-03-13
 - [x] feat: 页面支持模型选择, 以及流式输出, 临时屏蔽登录功能。  2024-03-08
 - [x] fix: 支持gpt-4模型，修改前端空白BUG。 2023-03-30
 - [x] fix: 增加用户模块，认证页面，接口jwt验证。 2023-03-27
@@ -18,7 +19,7 @@
 - [x] feat：增加代理配置，解决国内无法使用。2023-03-04
 
 # 项目功能
-* 模型选择
+* 模型配置
 * 流式输出
 * 请求openai增加代理（防墙）
 * AI性格设定
@@ -38,7 +39,7 @@
 $ git clone https://github.com/Zzhenping/chatgpt-web.git
 
 # 进入项目目录
-$ cd server/chatgpt-web
+$ cd chatgpt-web/server
 
 # 复制配置文件
 $ copy config.dev.json config.json
