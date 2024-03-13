@@ -122,7 +122,7 @@ func (c *ChatController) Completion(ctx *gin.Context) {
 	}
 	// cnf.Model 是否在 chatModels 中
 	if types.Contains(chatModels, request.Model) {
-		if request.Stream {
+		if req.Stream {
 			stream, err := client.CreateChatCompletionStream(ctx, req)
 			if err != nil {
 				c.ResponseJson(ctx, http.StatusInternalServerError, err.Error(), nil)

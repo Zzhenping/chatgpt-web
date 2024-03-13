@@ -48,7 +48,7 @@ function App() {
     const [value, setValue] = useState<RadioValue>('gpt-3.5-turbo');
     const [maxTokens, setMaxTokens] = useState<string>("512")
     const [botDesc, setBotDesc] = useState<string>("")
-    const [percentageParam, setPercentageParam] = useState(20);
+    const [temperature, setTemperature] = useState(90);
 
 
     const [open, setOpen] = useState<boolean>(false);
@@ -68,6 +68,18 @@ function App() {
         }, 10)
     }
 
+    // const updateTemperature 两个参数, 一个是加减, 一个是温度值
+    const updateTemperature =  (type: string, temperature: number) => {
+        if (type === 'add') {
+            if (temperature < 100) {
+                setTemperature(temperature + 10)
+            }
+        } else {
+            if (temperature > 0) {
+                setTemperature(temperature - 10)
+            }
+        }
+    }
 
     // clearQuestion 清空文本特殊字符
     function clearQuestion(requestText: string) {
@@ -173,8 +185,9 @@ function App() {
         const params = JSON.stringify({
             messages: chatContext,
             model: value,
-            max_tokens: parseInt(maxTokens), // 转为int
+            max_tokens: parseInt(maxTokens),
             bot_desc: botDesc,
+            temperature: temperature / 100,
         })
         const res = await completionStream(params)
         if (res.ok && res.body) {
@@ -266,7 +279,7 @@ function App() {
         { label: 'gpt-3.5-turbo', value: 'gpt-3.5-turbo' },
         { label: 'gpt-4', value: 'gpt-4' },
     ];
-
+    console.log(temperature)
     return (
         <div className={css.app}>
             <Chat
@@ -320,6 +333,18 @@ function App() {
                 <div>
                     <h4>请求最大字符数</h4>
                     <Input value={maxTokens} onChange={val => setMaxTokens(val)} placeholder="GPT请求最大字符数" />
+                </div>
+
+                <div>
+                    <h4 className={Style.temperature_title_box}>
+                        温度系数
+                        <Input value={temperature / 100} disabled={true}/>
+                    </h4>
+                    <div className={Style.temperature_box}>
+                        <Button onClick={() => updateTemperature("", temperature)}>减</Button>
+                        <Progress value={temperature} className={Style.progress_container}/>
+                        <Button onClick={() => updateTemperature("add", temperature)} color="primary">加</Button>
+                    </div>
                 </div>
             </Modal>
         </div>
