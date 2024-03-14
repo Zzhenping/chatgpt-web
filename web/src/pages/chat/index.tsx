@@ -3,7 +3,6 @@ import css from "../../App.module.css";
 import "../../chatui-theme.css";
 import Chat, {
   Bubble,
-  Button,
   Input,
   MessageProps,
   Modal,
@@ -14,13 +13,13 @@ import Chat, {
 } from "@chatui/core";
 import "@chatui/core/dist/index.css";
 import "@chatui/core/es/styles/index.less";
-import { SetStateAction, useState } from "react";
+import { useState } from "react";
 import MdEditor from "md-editor-rt";
 import "md-editor-rt/lib/style.css";
 import sanitizeHtml from "sanitize-html";
-import { completion, completionStream } from "../../services/port";
+import { completionStream } from "../../services/port";
 import { RadioValue } from "@chatui/core/lib/components/Radio/Radio";
-import Style from "./index.module.less";
+import Temperature from "../../components/Temperature";
 
 const defaultQuickReplies = [
   {
@@ -77,16 +76,15 @@ function App() {
     }, 10);
   };
 
-  // const updateTemperature 两个参数, 一个是加减, 一个是温度值
-  const updateTemperature = (type: string, temperature: number) => {
-    if (type === "add") {
-      if (temperature < 100) {
-        setTemperature(temperature + 10);
-      }
-    } else {
-      if (temperature > 0) {
-        setTemperature(temperature - 10);
-      }
+  const handlePlusTemperature = () => {
+    if (temperature < 100) {
+      setTemperature(temperature + 10);
+    }
+  };
+
+  const handleMinusTemperature = () => {
+    if (temperature > 0) {
+      setTemperature(temperature - 10);
     }
   };
 
@@ -357,27 +355,11 @@ function App() {
           />
         </div>
 
-        <div>
-          <h4 className={Style.temperature_title_box}>
-            温度系数
-            <Input value={temperature / 100} disabled={true} />
-          </h4>
-          <div className={Style.temperature_box}>
-            <Button onClick={() => updateTemperature("", temperature)}>
-              减
-            </Button>
-            <Progress
-              value={temperature}
-              className={Style.progress_container}
-            />
-            <Button
-              onClick={() => updateTemperature("add", temperature)}
-              color="primary"
-            >
-              加
-            </Button>
-          </div>
-        </div>
+        <Temperature
+          value={temperature}
+          onMinus={handleMinusTemperature}
+          onPlus={handlePlusTemperature}
+        />
       </Modal>
     </div>
   );
